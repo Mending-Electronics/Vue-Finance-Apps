@@ -1,0 +1,749 @@
+<!DOCTYPE html> 
+<html lang="fr"> 
+    <head> 
+
+        <meta charset="UTF-8"> 
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+        <title>Simulateur d'Épargne</title> 
+
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/5.3.3/superhero/bootstrap.min.css" rel="stylesheet"> 
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.0.0/dist/vue.global.js"></script> 
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+
+    </head> 
+
+
+    
+    <style> 
+        canvas { 
+            background-color: rgb(255, 255, 255); 
+        } 
+
+        .border-blue {
+            border-color: var(--bs-blue);
+        }
+
+        .border-purple {
+            border-color: var(--bs-purple);
+        }
+
+        .border-cyan {
+            border-color: var(--bs-cyan);
+        }
+
+        .border-pink {
+            border-color: var(--bs-pink);
+        }
+
+        .border-teal {
+            border-color: var(--bs-teal);
+        }
+
+        .border-white {
+            border-color: var(--bs-white);
+        }
+
+
+        
+    </style> 
+
+
+
+    <body> 
+
+        <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark"> 
+            <div class="container-fluid"> 
+                <h5>Simulateur d'Épargne</h5>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation"> 
+                    <span class="navbar-toggler-icon"></span> 
+                </button> 
+                <div class="collapse navbar-collapse" id="navbarColor01"> 
+                    <ul class="navbar-nav me-auto"> 
+                    <li class="nav-item"> 
+                        <a class="nav-link active" href="#">Home 
+                        <span class="visually-hidden">(current)</span> 
+                        </a> 
+                    </li> 
+                    <li class="nav-item"> 
+                        <a class="nav-link" href="#">Features</a> 
+                    </li> 
+                    <li class="nav-item"> 
+                        <a class="nav-link" href="#">About</a> 
+                    </li> 
+                    </ul> 
+                </div> 
+            </div> 
+        </nav> 
+    
+    
+        <main id="app">
+    
+        <div class="container mt-5"> 
+        
+            <!-- <h2 class="mb-4 text-center">Simulateur d'Épargne</h2> --> 
+    
+    
+            <form @submit.prevent="handleSubmit" class="needs-validation" novalidate>
+                <div class="row"> 
+                    <div class="col-md-6"> 
+                        <div class="card p-3 mb-3 border-white"> 
+                            <h5 class="card-title">Paramètres d'Épargne</h5> 
+                            <label class="form-label mt-2">Capital de base (€)</label> 
+                            <input type="number" step="any" class="form-control" id="capitalBase" v-model.number="capitalBase">
+                            <label class="form-label">Montant mensuel (€)</label> 
+                            <input type="number" step="any" class="form-control" id="epargne" v-model.number="epargne">
+                            <label class="form-label mt-2">Date de début</label> 
+                            <input v-model="dateDebut" type="date" class="form-control"> 
+                            <label class="form-label mt-2">Date de fin</label> 
+                            <input v-model="dateFin" type="date" class="form-control">
+                        </div> 
+
+                        <div class="card p-3 mb-3 border-white">
+                            <h5 class="card-title">Paramètres Généraux</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Inflation annuelle (%)</label>
+                                    <input v-model.number="inflation" type="number" step="0.1" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Impôt sur le revenu (%)</label>
+                                    <input v-model.number="tauxImpotRevenu" type="number" step="0.1" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Carte Livret A -->
+                        <div class="card border-blue p-3 mb-3">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Livret A</span>
+                                <button type="button" class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#modalLivretA">
+                                    <i class="bi bi-info-circle fs-5"></i>
+                                </button>
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label class="form-label">Taux d'intérêt (%)</label>
+                                    <input v-model="livretA" type="number" step="any" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Plafond (€)</label>
+                                    <input v-model.number="livretAPlafond" type="number" class="form-control" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Carte LDDS -->
+                        <div class="card border-teal p-3 mb-3">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Livret de Développement Durable et Solidaire (LDDS)</span>
+                                <button type="button" class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#modalLDDS">
+                                    <i class="bi bi-info-circle fs-5"></i>
+                                </button>
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label class="form-label">Taux d'intérêt (%)</label>
+                                    <input v-model="LDD" type="number" step="any" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Plafond (€)</label>
+                                    <input v-model.number="LDDPlafond" type="number" class="form-control" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <!-- Carte PEL -->
+                        <div class="card border-cyan p-3 mb-3">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Plan d'Épargne Logement (PEL)</span>
+                                <button type="button" class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#modalPEL">
+                                    <i class="bi bi-info-circle fs-5"></i>
+                                </button>
+                            </h5>
+                            <div class="row mb-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">Taux d'intérêt (%)</label>
+                                    <input v-model="PEL" type="number" step="any" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Plafond (€)</label>
+                                    <input v-model.number="PELPlafond" type="number" class="form-control" min="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Prelèvements Sociaux (%)</label>
+                                    <input v-model.number="PELImpot" type="number" class="form-control" min="0">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Blocage (Années)</label>
+                                    <input v-model.number="PELBlocageAnnees" type="number" class="form-control" min="0">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Durée max versement</label>
+                                    <input v-model.number="PELDureeMaxVersement" type="number" class="form-control" min="1">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Avant IR (Années)</label>
+                                    <input v-model.number="PELAvantIR" type="number" class="form-control" min="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    
+                    <!-- Carte PEA -->
+                    <div class="col-md-6">
+                        
+                        <div class="card border-pink p-3 mb-3">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Plan d'Épargne en Actions (PEA)</span>
+                                <button type="button" class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#modalPEA">
+                                    <i class="bi bi-info-circle fs-5"></i>
+                                </button>
+                            </h5>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Plafond (€)</label>
+                                    <input v-model.number="PEAPlafond" type="number" class="form-control" min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Blocage (Années)</label>
+                                    <input v-model.number="PEABlocageAnnees" type="number" class="form-control" min="0">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Impôt clôture anticipée (%)</label>
+                                    <input v-model.number="PEAImpotClotureAnticipee" type="number" step="0.1" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Prélèvements sociaux (%)</label>
+                                    <input v-model.number="PEAImposition" type="number" step="0.1" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Carte CTO -->
+                    <div class="col-md-6 pb-3">
+                        <div class="card border-purple p-3 mb-3 h-100">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Compte-Titres Ordinaire</span>
+                                <button type="button" class="btn btn-link text-white p-0" data-bs-toggle="modal" data-bs-target="#modalCTO">
+                                    <i class="bi bi-info-circle fs-5"></i>
+                                </button>
+                            </h5>
+                            <div class="row h-100">
+                                <div class="col-md-6">
+                                    <label class="form-label">Impôt (%)</label>
+                                    <input v-model.number="CTOImpot" type="number" step="0.1" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Prélèvements sociaux (%)</label>
+                                    <input v-model.number="CTOImposition" type="number" step="0.1" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+
+                <div class="row"> 
+                    <div class="col-md-12"> 
+                        <div class="card border-primary p-3 mb-3"> 
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Taux d'Intérêt des ETF</span>
+                            </h5> 
+                            <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <label class="form-label me-2">ETF SP500 (%)</label>
+                                    <button type="button" class="btn btn-link text-white p-0 pb-1" data-bs-toggle="modal" data-bs-target="#modalETFSP500">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                </div>
+                                <input v-model="ETFSP500" type="number" step="any" class="form-control"> 
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <label class="form-label me-2">ETF CAC40 (%)</label>
+                                    <button type="button" class="btn btn-link text-white p-0 pb-1" data-bs-toggle="modal" data-bs-target="#modalETFCAC40">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                </div>
+                                <input v-model="ETFCAC40" type="number" step="any" class="form-control"> 
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <label class="form-label me-2">ETF Monde (%)</label>
+                                    <button type="button" class="btn btn-link text-white p-0 pb-1" data-bs-toggle="modal" data-bs-target="#modalETFMonde">
+                                        <i class="bi bi-info-circle"></i>
+                                    </button>
+                                </div>
+                                <input v-model="ETFMonde" type="number" step="any" class="form-control"> 
+                            </div>
+                            </div>
+                        </div> 
+                    </div> 
+                </div> 
+
+
+
+
+                <!-- Add this above the chart canvas -->
+                <div class="row mb-3">
+
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body m-2">
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-calculator"></i> Simuler mes intérêts
+                                    </button>
+                                </div>
+                                <div class="text-center"> 
+                                    <button class="btn btn-outline-primary text-white w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#calculationsOffcanvas" aria-controls="calculationsOffcanvas">
+                                        Voir le détail des calculs
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">Afficher les courbes</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" v-model="showCategories.capital" id="showCapital">
+                                            <label class="form-check-label" for="showCapital">
+                                                Capital
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" v-model="showCategories.capitalInflation" id="showCapitalInflation">
+                                            <label class="form-check-label" for="showCapitalInflation">
+                                                Capital avec inflation
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" v-model="showCategories.savings" id="showSavings">
+                                            <label class="form-check-label" for="showSavings">
+                                                Livrets (A, LDD, PEL)
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" v-model="showCategories.savingsInflation" id="showSavingsInflation">
+                                            <label class="form-check-label" for="showSavingsInflation">
+                                                Livrets avec inflation
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" v-model="showCategories.etfs" id="showETFs">
+                                            <label class="form-check-label" for="showETFs">
+                                                ETFs
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" v-model="showCategories.etfsInflation" id="showETFsInflation">
+                                            <label class="form-check-label" for="showETFsInflation">
+                                                ETFs avec inflation et impôts
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+
+            <canvas id="myChart" class="mt-4" width="0" height="0"></canvas> 
+
+
+
+
+            <!-- Offcanvas for calculations -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="calculationsOffcanvas" aria-labelledby="calculationsOffcanvasLabel" style="width: 450px;">
+                <div class="offcanvas-header bg-dark text-white">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-calculator me-2 fs-4"></i>
+                        <h5 class="offcanvas-title mb-0" id="calculationsOffcanvasLabel">Détail des calculs</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body bg-gray">
+                    <!-- Section Paramètres -->
+                    <div class="card mb-3 border-0 shadow-sm">
+                        <div class="card-header bg-dark">
+                            <h6 class="mb-0">
+                                <i class="bi bi-gear me-2 text-primary"></i>Paramètres de simulation
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-coin me-2 text-muted"></i>Capital de base</span>
+                                <strong>{{ capitalBase.toLocaleString('fr-FR') }} €</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><i class="bi bi-piggy-bank me-2 text-muted"></i>Épargne mensuelle</span>
+                                <strong>{{ epargne.toLocaleString('fr-FR') }} €</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><i class="bi bi-calendar-range me-2 text-muted"></i>Période</span>
+                                <strong>{{ dateDebut }} → {{ dateFin }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Taux appliqués -->
+                    <div class="card mb-3 border-0 shadow-sm">
+                        <div class="card-header bg-dark">
+                            <h6 class="mb-0">
+                                <i class="bi bi-graph-up me-2 text-primary"></i>Taux appliqués
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-6" v-for="(rate, name) in {
+                                    'Livret A': livretA,
+                                    'LDD': LDD,
+                                    'PEL': PEL,
+                                    'ETF SP500': ETFSP500,
+                                    'ETF CAC40': ETFCAC40,
+                                    'ETF Monde': ETFMonde
+                                }" :key="name">
+                                    <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                        <span class="small">{{ name }}</span>
+                                        <span class="badge bg-primary">{{ rate }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Résultats finaux -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-dark">
+                            <h6 class="mb-0">
+                                <i class="bi bi-trophy me-2 text-primary"></i>Résultats finaux
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div v-for="(data, index) in investmentData" 
+                                 :key="index" 
+                                 class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge me-2" :style="'background-color:' + data.color + '; width: 12px; height: 12px; padding: 0;'"></span>
+                                            <span>{{ data.name }}</span>
+                                        </div>
+                                        <div>
+                                            <strong>{{ parseFloat(data.value).toLocaleString('fr-FR') }} €</strong>
+                                            <small class="text-muted ms-2">
+                                                ({{ (data.value / capitalBase * 100 - 100).toFixed(1) }}%)
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" 
+                                            :style="'width: ' + Math.min(100, data.value / 10000) + '%; background-color:' + data.color" 
+                                            role="progressbar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-muted" style="font-size: 12px; text-align: justify;">
+                                    Les pourcentages affichés sont calculés sur la base du capital initial et des versements mensuels. Ils représentent la part du capital initial et des versements mensuels qui ont contribué au montant final.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+       
+        
+        </div> 
+    
+        
+
+
+
+
+
+
+
+
+        
+        <!-- Modal Livret A -->
+        <div class="modal fade" id="modalLivretA" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Livret A - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <h6>Plafond : 22 950 €</h6>
+                <p>Le Livret A est un placement sûr et liquide, dont les fonds sont disponibles à tout moment.</p>
+                <h6>Fiscalité :</h6>
+                <ul>
+                  <li>Exonéré d'impôt sur le revenu</li>
+                  <li>Exonéré de prélèvements sociaux</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Modal LDDS -->
+        <div class="modal fade" id="modalLDDS" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">LDDS - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <h6>Plafond : 12 000 €</h6>
+                <p>Le Livret de Développement Durable et Solidaire fonctionne comme le Livret A mais avec un plafond inférieur.</p>
+                <h6>Fiscalité :</h6>
+                <ul>
+                  <li>Exonéré d'impôt sur le revenu</li>
+                  <li>Exonéré de prélèvements sociaux</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Modal PEL -->
+        <div class="modal fade" id="modalPEL" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">PEL - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <h6>Plafond : 61 200 €</h6>
+                <h6>Durée :</h6>
+                <ul>
+                  <li>Durée minimale : 4 ans</li>
+                  <li>Durée maximale de versement : 10 ans</li>
+                  <li>Peut rester ouvert après la fin des versements</li>
+                </ul>
+                <h6>Fiscalité :</h6>
+                <ul>
+                  <li>Prélèvements sociaux : 17,2% annuels</li>
+                  <li>Flat tax de 30% (12,8% IR + 17,2% PS) pour les PEL ouverts après 2018</li>
+                  <li>Option pour le barème progressif si avantageux</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Modal PEA -->
+        <div class="modal fade" id="modalPEA" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">PEA - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <h6>Plafond : 150 000 €</h6>
+                <h6>Durée de blocage : 5 ans</h6>
+                <h6>Fiscalité :</h6>
+                <ul>
+                  <li>Avant 5 ans : Clôture du plan et imposition à 30% (12,8% IR + 17,2% PS)</li>
+                  <li>Après 5 ans : Exonération d'impôt sur le revenu, PS de 17,2%</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Modal CTO -->
+        <div class="modal fade" id="modalCTO" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">CTO - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <h6>Pas de plafond</h6>
+                <h6>Fiscalité :</h6>
+                <ul>
+                  <li>Flat tax de 30% (12,8% IR + 17,2% PS) sur les plus-values</li>
+                  <li>Imposition lors de la vente des titres</li>
+                  <li>Abattement possible pour durée de détention > 2 ans</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+
+        <!-- Modal ETF SP500 -->
+        <div class="modal fade" id="modalETFSP500" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ETF SP500 - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Qu'est-ce qu'un ETF ?</h6>
+                <p>Un ETF (Exchange-Traded Fund) est un fonds d'investissement coté en Bourse qui réplique la performance d'un indice boursier. Il permet d'investir sur un panier d'actions en une seule transaction.</p>
+                
+                <h6 class="mt-4">Description du SP500</h6>
+                <p>L'ETF SP500 réplique l'indice S&P 500, qui suit les 500 plus grandes entreprises américaines cotées en bourse. C'est l'un des indices les plus suivis au monde et il est souvent considéré comme le meilleur indicateur de la santé des grandes entreprises américaines.</p>
+                
+                <h6 class="mt-4">Performance historique moyenne</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Rendement annuel moyen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>5 ans</td><td>+15.2%</td></tr>
+                            <tr><td>10 ans</td><td>+12.9%</td></tr>
+                            <tr><td>15 ans</td><td>+10.7%</td></tr>
+                            <tr><td>20 ans</td><td>+9.8%</td></tr>
+                            <tr><td>25 ans</td><td>+9.5%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2">Les performances passées ne préjugent pas des performances futures.</p>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Modal ETF CAC40 -->
+        <div class="modal fade" id="modalETFCAC40" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ETF CAC40 - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Qu'est-ce qu'un ETF ?</h6>
+                <p>Un ETF (Exchange-Traded Fund) est un fonds d'investissement coté en Bourse qui réplique la performance d'un indice boursier. Il permet d'investir sur un panier d'actions en une seule transaction.</p>
+                
+                <h6 class="mt-4">Description du CAC40</h6>
+                <p>L'ETF CAC40 réplique l'indice phare de la Bourse de Paris, composé des 40 valeurs françaises les plus importantes en termes de capitalisation boursière et de liquidité. Il représente environ 60% de la capitalisation boursière du marché français.</p>
+                
+                <h6 class="mt-4">Performance historique moyenne</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Rendement annuel moyen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>5 ans</td><td>+8.3%</td></tr>
+                            <tr><td>10 ans</td><td>+7.1%</td></tr>
+                            <tr><td>15 ans</td><td>+5.9%</td></tr>
+                            <tr><td>20 ans</td><td>+5.2%</td></tr>
+                            <tr><td>25 ans</td><td>+6.8%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2">Les performances passées ne préjugent pas des performances futures.</p>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Modal ETF Monde -->
+        <div class="modal fade" id="modalETFMonde" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ETF Monde - Informations</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Qu'est-ce qu'un ETF ?</h6>
+                <p>Un ETF (Exchange-Traded Fund) est un fonds d'investissement coté en Bourse qui réplique la performance d'un indice boursier. Il permet d'investir sur un panier d'actions en une seule transaction.</p>
+                
+                <h6 class="mt-4">Description de l'ETF Monde</h6>
+                <p>L'ETF Monde offre une exposition diversifiée aux marchés actions mondiaux, généralement en suivant des indices comme le MSCI World ou le FTSE All-World. Il permet d'investir dans des milliers d'entreprises à travers le monde développé, offrant ainsi une diversification géographique et sectorielle.</p>
+                
+                <h6 class="mt-4">Performance historique moyenne</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Période</th>
+                                <th>Rendement annuel moyen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>5 ans</td><td>+10.5%</td></tr>
+                            <tr><td>10 ans</td><td>+9.2%</td></tr>
+                            <tr><td>15 ans</td><td>+7.8%</td></tr>
+                            <tr><td>20 ans</td><td>+6.5%</td></tr>
+                            <tr><td>25 ans</td><td>+7.1%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mt-2">Les performances passées ne préjugent pas des performances futures.</p>
+            </div>
+            </div>
+        </div>
+        </div>
+
+
+    </main>
+
+
+
+
+
+
+        <script src="vue/app.vue" type="text/javascript"></script> 
+        
+
+    </body>     
+</html> 
